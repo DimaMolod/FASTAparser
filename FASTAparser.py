@@ -82,7 +82,9 @@ def load_and_parse():
     with open(file_path) as f:
         plotlist = f.read()
     for str in plotlist:
-        if str not in amino_acids_dic: continue
+        if str not in amino_acids_dic:
+            print("Error! " + str + " is unknown, skipping...")
+            continue
         for s in str: amino_acids.append(s)
     return amino_acids
 # File load dialog
