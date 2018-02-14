@@ -76,31 +76,37 @@ def file_save(text):
     f.write(text)
     f.close()
 
-# Load and add in list only amino-acids
-def load_fasta():
-    input_file = Tk.filedialog.askopenfilename(initialdir = "~/test",title = "Select file",
-                                              filetypes = (("amino-acid sequence file","*.fasta.txt"),("all files","*.*")))
+# parse fasta
+def parse_fasta(input_file):
     fasta_sequences = SeqIO.parse(input_file, 'fasta')
     allsequence = ''
     for fasta in fasta_sequences:
-        allsequence += fasta.id, fasta.seq.tostring()
+        allsequence += fasta.seq.tostring()
     return allsequence
+
 # File load dialog
-def load_formula():
-    file_path = Tk.filedialog.askopenfilename(initialdir = "~/test",title = "Select file",                                             filetypes = (("chemical formula","*.txt"),("all files","*.*")))
-    with open(file_path) as f:
-        text = f.read()
-    return text
+def load_file():
+    file_path = Tk.filedialog.askopenfilename(initialdir = "~/test",title = "Select file",
+                                              filetypes = (("Chemical formula or fasta","*.txt"),("all files","*.*")))
+    if 'fasta' in file_path:
+        out = parse_fasta(file_path)
+        fasta = True
+    else:
+        with open(file_path) as f:
+            out = f.read()
+            fasta = False
+    return out, fasta
 
 def electron_density_fasta(amino_sequence):
-        el_dens = 0
         num = 0
         vol = 0
         numb = 0
         for amino in amino_sequence:
             if not isinstance(amino, str): return "Wrong format of input data!"
             a = amino_acids_dic.get(amino)
-            print(a.get('name') + ' volume: ' +a.get('volume') + ' number of electrons: ' + a.get('numberofelectrons'))
+            num+=1
+            print('NAME: ' + a.get('name') + ' VOLUME: ' + a.get('volume') + ' NUMBER OF ELECTRONS: ' + \
+                  a.get('numberofelectrons') + ' NUMBER OF AMINO-ACID: ' + str(num))
             vol += (float(a.get('volume')))
             numb += (int(a.get('numberofelectrons')))
         return numb, vol
@@ -132,9 +138,12 @@ root = Tk.Tk()
 root.withdraw()
 #x = load_and_parse()
 #print(electron_density_protein(x))
-x = load_fasta()
-#x = load_formula()
-numb, vol = electron_density_buffer((x))
+x, fasta = load_file()
+if fasta:
+    numb, vol = electron_density_fasta(x)
+else:
+    numb,vol = electron_density_buffer(x)
+
 print('number of electrons: ' + str(numb) + ' e')
 print('volume: ' + str(vol) + ' (A^3)')
 print('mean electron density: ' + str(numb/vol) + ' (e/A^3)')
