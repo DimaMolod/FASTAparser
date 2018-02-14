@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import re
 import sys
+import Bio
+from Bio import SeqIO
 if sys.version_info[0] < 3:
     import Tkinter as Tk
 else:
@@ -75,26 +77,22 @@ def file_save(text):
     f.close()
 
 # Load and add in list only amino-acids
-def load_and_parse():
-    file_path = Tk.filedialog.askopenfilename(initialdir = "~/test",title = "Select file",
-                                              filetypes = (("amino-acid sequence file","*.fasta"),("all files","*.*")))
-    amino_acids = []
-    with open(file_path) as f:
-        plotlist = f.read()
-    for str in plotlist:
-        if str not in amino_acids_dic:
-            print("Error! " + str + " is unknown, skipping...")
-            continue
-        for s in str: amino_acids.append(s)
-    return amino_acids
+def load_fasta():
+    input_file = Tk.filedialog.askopenfilename(initialdir = "~/test",title = "Select file",
+                                              filetypes = (("amino-acid sequence file","*.fasta.txt"),("all files","*.*")))
+    fasta_sequences = SeqIO.parse(input_file, 'fasta')
+    allsequence = ''
+    for fasta in fasta_sequences:
+        allsequence += fasta.id, fasta.seq.tostring()
+    return allsequence
 # File load dialog
-def file_load():
+def load_formula():
     file_path = Tk.filedialog.askopenfilename(initialdir = "~/test",title = "Select file",                                             filetypes = (("chemical formula","*.txt"),("all files","*.*")))
     with open(file_path) as f:
         text = f.read()
     return text
 
-def electron_density_protein(amino_sequence):
+def electron_density_fasta(amino_sequence):
         el_dens = 0
         num = 0
         vol = 0
@@ -105,7 +103,7 @@ def electron_density_protein(amino_sequence):
             print(a.get('name') + ' volume: ' +a.get('volume') + ' number of electrons: ' + a.get('numberofelectrons'))
             vol += (float(a.get('volume')))
             numb += (int(a.get('numberofelectrons')))
-        return numb/vol
+        return numb, vol
 
 
 def electron_density_buffer(chemical_formula):
@@ -124,7 +122,7 @@ def electron_density_buffer(chemical_formula):
               e.get('numberofelectrons') + ' NUMBER OF ATOMS: ' + str(n))
         vol += (float(e.get('volume')))
         numb += (int(e.get('numberofelectrons')))
-    return numb / vol
+    return numb, vol
 
 
 #///////////////////////START PROGRAM////////////////////////////////////////////////////////////
@@ -134,8 +132,12 @@ root = Tk.Tk()
 root.withdraw()
 #x = load_and_parse()
 #print(electron_density_protein(x))
-x = file_load()
-print('mean electron density: ' + str(electron_density_buffer(x)) + ' (e/A^3)')
+x = load_fasta()
+#x = load_formula()
+numb, vol = electron_density_buffer((x))
+print('number of electrons: ' + str(numb) + ' e')
+print('volume: ' + str(vol) + ' (A^3)')
+print('mean electron density: ' + str(numb/vol) + ' (e/A^3)')
 end = time.time()
 print (" Time consumed : " + str (end - start) + " sec")
 
